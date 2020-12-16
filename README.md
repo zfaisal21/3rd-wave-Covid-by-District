@@ -1,4 +1,4 @@
-# 3rd-wave-Covid-by-District (project not done yet)
+# 3rd-wave-Covid-by-District (ongoing project)
 
 #### From this project user can try
 
