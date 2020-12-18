@@ -17,16 +17,18 @@ library(ggiraph)
 library(leaflet)
 
 # data <-read.csv("C:Users/Asus/OneDrive/Desktop/COVID19/ActiveCases.csv", header = TRUE, sep = ",")
-data <- read.csv("C:/Users/Asus/OneDrive/Desktop/COVID19/ActiveCases.csv")
+data <- read.csv("C:/Users/Asus/OneDrive/Desktop/COVID19/3rdwave/ActiveCases.csv")
 # fdata <-read.csv("C:Users/Asus/OneDrive/Desktop/COVID19/GovernHospTreatCOVID19.csv", header = TRUE, sep = ",")
-fdata <- read.csv("C:/Users/Asus/OneDrive/Desktop/COVID19/GovernHospTreatCOVID19.csv")
+fdata <- read.csv("C:/Users/Asus/OneDrive/Desktop/COVID19/3rdwave/GovernHospTreatCOVID19.csv")
+ffdata <- read.csv("C:/Users/Asus/OneDrive/Desktop/COVID19/3rdwave/screening.csv")
+
 
 r_colors <- rgb(t(col2rgb(colors()) / 255))
 names(r_colors) <- colors()
 
 # Define UI
-ui <- fluidPage(theme = shinytheme("superhero"),
-                navbarPage("COVID-19",
+ui <- fluidPage(theme = shinytheme("united"),
+              navbarPage("COVID-19",
                            
                            tabPanel("COVID-19 Information",
                                     titlePanel("How danger COVID-19 is ?"),
@@ -48,29 +50,24 @@ ui <- fluidPage(theme = shinytheme("superhero"),
                              verbatimTextOutput("txtout"))
                            ),
                            
-########################## Map - Screening ##########################
+########################## page 3 - Map-Screening ##########################
                            tabPanel("Map - Screening",
-                                    # leafletOutput("mymap"),
+                                    leafletOutput("mymap2"),
                                     # p(),
-                                    # actionButton("recalc", "New points")
+                                    # actionButton("recalc2", "New points")
                            ),
-########################## Map - Hospital treat COVID-19 ##########################
-tabPanel("Map - Hospital treat COVID-19",
-         leafletOutput("mymap"),
-         p(),
-         actionButton("recalc", "New points")
-),
+########################## page 4 - Map-Hospital treat COVID-19 ##########################
+                          tabPanel("Map - Hospital treat COVID-19",
+                            leafletOutput("mymap"),
+                            # p(),
+                            # actionButton("recalc", "New points")
+                            ),
 
-########################## Active Cases ##########################  
+########################## page 5 - Active Cases ##########################  
                            tabPanel("Active Cases - Interstates", 
-                                    basicPage(
-                                      DT::dataTableOutput("climatetableCity"))),
+                                    basicPage(DT::dataTableOutput("climatetableCity"))),
                            
-                           
-                           
-                           
-                           
-########################## Interstates comparison ##########################                    
+########################## page 6 - Interstates comparison ##########################                    
                            tabPanel("Interstates Comparison", "Azim figure out k",
                                     #####padam            
                                     selectInput("outlook", label = "Outlook:", 
@@ -101,10 +98,52 @@ server <- function(input, output) {
   })
   ####### output Symptom checker end #######
   
-  #Danielmap
-  points <- eventReactive(input$recalc, {
-    cbind(rnorm(40) * 2 + 13, rnorm(40) + 48)
-  }, ignoreNULL = FALSE)
+  ####### Map-screening start #######
+  # points <- eventReactive(input$recalc2, {
+  #   cbind(rnorm(40) * 2 + 13, rnorm(40) + 48)
+  # }, ignoreNULL = FALSE)
+  
+  template_pop_up2 <-  tags$dl(class = "dl-horizontal",
+                              tags$dt("Name: "), tags$dd("%s"),
+                              tags$dt("Address:"), tags$dd("%s"),
+                              tags$dt("District:"), tags$dd("%s"),
+                              tags$dt("State:"), tags$dd("%s"),
+                              tags$dt("Tel:"), tags$dd("%s")) %>% paste()
+  
+  popup_info2 <- sprintf(template_pop_up2,
+                        ffdata[["Name"]],
+                        ffdata[["Address"]],
+                        ffdata[["District"]],
+                        ffdata[["State"]],
+                        ffdata[["Tel"]])
+  
+  getColor <- function(df) 
+  {
+    sapply(df$Type, function(x) {
+      if(x == 1) {"lightblue"}
+      else{"blue"}
+    })}
+  
+  icons <- awesomeIcons(
+    icon = 'fa-blank',
+    library = 'fa',
+    iconColor = 'white',
+    markerColor = getColor(ffdata))
+  
+  output$mymap2 <- renderLeaflet({
+    leaflet() %>%
+      addProviderTiles(providers$Stamen.TonerLite,
+                       options = providerTileOptions(noWrap = TRUE)) %>%
+      addAwesomeMarkers(ffdata$longitude, ffdata$latitude, icon = icons, popup = popup_info2)
+  })  
+  ####### Map-screening end ####### 
+  
+  
+  
+  ####### Map-Hospital treat COVID-19 start #######
+  # points <- eventReactive(input$recalc, {
+  #   cbind(rnorm(40) * 2 + 13, rnorm(40) + 48)
+  # }, ignoreNULL = FALSE)
   
   template_pop_up <-  tags$dl(class = "dl-horizontal",
                               tags$dt("Name: "), tags$dd("%s"),
@@ -120,40 +159,32 @@ server <- function(input, output) {
                         fdata[["State"]],
                         fdata[["Tel"]])
   
-  
-  getColor <- function(df) {
+  getColor <- function(df) 
+    {
     sapply(df$Type, function(x) {
-      if(x == 1) {
-        "lightblue"
-      }else{"blue"}
-      
-      
-    })
-  }
+      if(x == 1) {"lightblue"}
+      else{"blue"}
+      })}
   
   icons <- awesomeIcons(
     icon = 'fa-blank',
     library = 'fa',
     iconColor = 'white',
-    markerColor = getColor(fdata)
-  )
+    markerColor = getColor(fdata))
   
   output$mymap <- renderLeaflet({
     leaflet() %>%
       addProviderTiles(providers$Stamen.TonerLite,
-                       options = providerTileOptions(noWrap = TRUE)
-      ) %>%
+                       options = providerTileOptions(noWrap = TRUE)) %>%
       addAwesomeMarkers(fdata$longitude, fdata$latitude, icon = icons, popup = popup_info)
   })  
+  ####### Map-Hospital treat COVID-19 end #######  
   
-  # Active Cases- Interstates
-  output$climatetableCity = DT::renderDataTable({
-    data
-  })
-  
+  ####### Active Cases- Interstates start #######
+  output$climatetableCity = DT::renderDataTable({data})
+  ####### Active Cases- Interstates end #######
   
 } # server
-
 
 # Create Shiny object
 shinyApp(ui = ui, server = server)
