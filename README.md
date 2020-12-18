@@ -4,6 +4,7 @@
 
 ->check the covid symptoms <br/>
 ->Hospital or Clinic for Screening <br/>
-->Government hospital that treat COVID-19 <br/>
-->Active case by District <br/>
+->Screening clinic (Government or Swasta) <br/>
+->Government hospital that treat COVID-19 -DONE <br/>
+->Active case by District -DONE<br/>
 ->Comparison interstate <br/>
